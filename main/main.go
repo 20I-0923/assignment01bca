@@ -5,7 +5,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/20I-0923/assignment01bca"
+	"github.com/20I-0923/assignment01bca/assignment01bca"
 )
 
 func main() {
