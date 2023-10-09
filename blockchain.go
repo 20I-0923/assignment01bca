@@ -16,15 +16,28 @@ type Blockchain struct {
 	Blocks []*Block
 }
 
-func NewBlock(transaction string, nonce int, previousHash string) *Block {
-	// making new block and calculating hash
+func NewBlock(bc *Blockchain, transaction string, nonce int, previousHash string) (*Block, error) {
+	if nonce < 0 {
+		return nil, fmt.Errorf("Nonce must be a positive integer")
+	}
+
+	if len(previousHash) == 0 {
+		if len(bc.Blocks) == 0 {
+			// Special case for the genesis block (no previous block)
+			previousHash = "0" // Set a default value for the genesis block
+		} else {
+			return nil, fmt.Errorf("PreviousHash must not be empty")
+		}
+	}
+
+	// making a new block and calculating hash
 	block := &Block{
 		Transaction:  transaction,
 		Nonce:        nonce,
 		PreviousHash: previousHash,
 	}
 	block.CurrentHash = CalculateHash(block)
-	return block
+	return block, nil
 }
 
 func DisplayBlocks(bc *Blockchain) {
@@ -45,11 +58,16 @@ func ChangeBlock(block *Block, newTransaction string) {
 }
 
 func VerifyChain(bc *Blockchain) bool {
-	// Verify the integrity of the blockchain
+	// Verifying integrity of the blockchain
 	for i := 1; i < len(bc.Blocks); i++ {
 		prevBlock := bc.Blocks[i-1]
 		currentBlock := bc.Blocks[i]
 		if currentBlock.PreviousHash != prevBlock.CurrentHash {
+			return false
+		}
+
+		// Verify the current hash of the block
+		if CalculateHash(currentBlock) != currentBlock.CurrentHash {
 			return false
 		}
 	}
